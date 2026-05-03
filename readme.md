@@ -1,48 +1,32 @@
-**Cloud OS**
+# Cloud OS
 
-Cloud OS is a web based operating system that creates a simple and intelligent workspace inside your browser. It combines essential apps with an integrated AI assistant to help you work faster and stay focused.
+Cloud OS is a browser-based operating system built for a hackathon. It simulates a desktop environment with essential apps and a unified interface.
 
-Overview
+## Features
 
-Cloud OS lets you manage files write code take notes and use apps without installing anything. Everything runs in one interface and works across all devices.
+- **Calculator** – basic arithmetic operations  
+- **Paint** – simple drawing tool  
+- **File Search** – browse and locate files  
+- **Browser** – basic web navigation  
+- **Notepad** – text editing  
+- **Terminal** – command-style interface  
+- **Settings** – system customization  
+- **Camera** – access to webcam  
 
-Features
+## AI Assistant
 
-AI assistant
-Helps with writing coding searching and tasks across all apps
+An AI assistant is integrated into the system, but it is currently not functioning due to API-related issues (rate limits / configuration errors).
 
-Web apps
-Includes editor notes file manager and more in one connected system
+## Tech Stack
 
-Cross platform
-Works on desktop laptop tablet and mobile
+- HTML, CSS, JavaScript  
+- Web APIs (for camera, UI interactions)
 
-Lightweight
-Fast with no setup or heavy installation
+## Known Issues
 
-Persistent workspace
-Your data is saved so you can continue anytime
+- AI assistant not working (API problem)  
+- Possible UI/UX inconsistencies under heavy interaction  
 
-Getting Started
+## Goal
 
-Open Cloud OS in your browser sign in and start working
-
-Use Cases
-
-Writing development task management learning
-
-Architecture
-
-Runs in browser with backend services for storage auth and AI
-
-Future
-
-Better AI more apps offline mode customization
-
-Contributing
-
-Open to ideas issues and improvements
-
-License
-
-Open source under a standard license
+To demonstrate a functional, modular web-based OS interface with multiple integrated tools in a single environment.
