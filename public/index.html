@@ -6,19 +6,16 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Wallpaper -->
+ 
   <img id="wallpaper" src="./bg/bg3.webp" />
   <canvas id="liveWallpaper"></canvas>
 
-  <!-- Top bar -->
   <div class="topbar">
     <div id="date"></div>
     <div>Cloud OS</div>
     <div id="time"></div>
   </div>
 
-  <!-- Weather Widget -->
   <div class="weather-widget" id="weather">
     <div class="weather-top">
       <div class="temp" id="temp">--°</div>
@@ -31,7 +28,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ SETTINGS WINDOW ═══════════════ -->
   <div class="window hidden" id="settingsWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Settings</span>
@@ -42,7 +38,6 @@
         <button class="settings-tab active" data-target="tab-appearance">Appearance</button>
         <button class="settings-tab" data-target="tab-background">Wallpaper</button>
       </div>
-
       <div id="tab-appearance" class="settings-pane">
         <h4>Theme Mode</h4>
         <div class="theme-options">
@@ -55,7 +50,6 @@
         <h4 style="margin-top:16px;">Accent Color</h4>
         <input type="color" id="osAccentColor" value="#4facfe" class="accent-picker">
       </div>
-
       <div id="tab-background" class="settings-pane hidden">
         <h4>Live Wallpapers</h4>
         <div class="live-bg-options">
@@ -76,7 +70,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ CALCULATOR WINDOW ═══════════════ -->
   <div class="window hidden" id="calculatorWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Calculator</span>
@@ -106,7 +99,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ FILES WINDOW ═══════════════ -->
   <div class="window hidden" id="filesWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Files</span>
@@ -117,7 +109,6 @@
         <span id="currentPath" class="path-label">/Home</span>
         <button id="newFileBtn" class="action-btn">+ New File</button>
       </div>
-      <!-- New file modal overlay -->
       <div id="fileModal" class="hidden file-modal">
         <input type="text" id="fileNameInput" placeholder="filename.txt">
         <textarea id="fileContentInput" placeholder="File contents..."></textarea>
@@ -138,7 +129,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ BROWSER WINDOW ═══════════════ -->
   <div class="window hidden" id="browserWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Browser</span>
@@ -167,7 +157,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ PAINT WINDOW ═══════════════ -->
   <div class="window hidden" id="paintWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Paint</span>
@@ -192,7 +181,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ NOTEPAD WINDOW ═══════════════ -->
   <div class="window hidden" id="notepadWindow">
     <div class="window-header draggable-header">
       <span class="window-title" id="notepadTitle">Notepad</span>
@@ -206,7 +194,6 @@
     </div>
   </div>
 
-  <!-- ═══════════════ TERMINAL WINDOW ═══════════════ -->
   <div class="window hidden" id="terminalWindow">
     <div class="window-header draggable-header">
       <span class="window-title">Terminal</span>
@@ -221,7 +208,57 @@
     </div>
   </div>
 
-  <!-- ═══════════════ START MENU ═══════════════ -->
+  <div class="window hidden" id="cameraWindow">
+    <div class="window-header draggable-header">
+      <span class="window-title">Camera</span>
+      <button class="close-btn">✕</button>
+    </div>
+    <div class="window-body camera-body">
+      <video id="cameraVideo" autoplay playsinline></video>
+      <div class="camera-controls">
+        <button id="cameraPhotoBtn" class="cam-btn cam-photo" title="Take Photo">
+          <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        </button>
+        <button id="cameraVideoBtn" class="cam-btn cam-record" title="Record Video">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/></svg>
+        </button>
+      </div>
+      <div id="cameraStatus" class="camera-status"></div>
+    </div>
+  </div>
+
+  <div class="window hidden" id="assistantWindow">
+    <div class="window-header draggable-header">
+      <div class="ai-header-left">
+        <svg viewBox="0 0 24 24" class="ai-header-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        <span class="window-title">AI Assistant</span>
+      </div>
+      <button class="close-btn">✕</button>
+    </div>
+    <div class="window-body ai-body">
+      <div id="aiWelcome" class="ai-welcome">
+        <div class="ai-welcome-icon">
+          <svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        </div>
+        <h2>How can I help?</h2>
+        <p>Ask me anything or tell me to open an app</p>
+        <div class="ai-suggestions">
+          <button class="ai-suggestion-chip" data-prompt="What can you do?">What can you do?</button>
+          <button class="ai-suggestion-chip" data-prompt="Open the calculator">Open Calculator</button>
+          <button class="ai-suggestion-chip" data-prompt="Tell me a fun fact">Fun fact</button>
+          <button class="ai-suggestion-chip" data-prompt="Help me write something">Help me write</button>
+        </div>
+      </div>
+      <div id="aiMessages" class="ai-messages"></div>
+      <div class="ai-input-area">
+        <textarea id="aiInput" placeholder="Message AI..." rows="1"></textarea>
+        <button id="aiSendBtn" class="ai-send-btn">
+          <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4 20-7z"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="start-menu hidden" id="startMenu">
     <div class="start-search-wrapper">
       <input type="text" id="startSearch" placeholder="Search apps or files...">
@@ -229,148 +266,80 @@
     </div>
     <div class="start-menu-title">Applications</div>
     <div class="app-grid">
-
       <div class="app-item" data-app="calculator">
-        <svg viewBox="0 0 24 24">
-          <rect width="16" height="20" x="4" y="2" rx="2"/>
-          <line x1="8" x2="16" y1="6" y2="6"/>
-          <line x1="16" x2="16" y1="14" y2="18"/>
-          <path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01M12 10h.01M8 10h.01M12 14h.01M8 14h.01M12 18h.01M8 18h.01"/></svg>
         <span>Calculator</span>
       </div>
-
       <div class="app-item" data-app="files">
-        <svg viewBox="0 0 24 24">
-          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         <span>Files</span>
       </div>
-
       <div class="app-item" data-app="browser">
-        <svg viewBox="0 0 24 24">
-          <circle cx="12" cy="12" r="10"/>
-          <line x1="2" y1="12" x2="22" y2="12"/>
-          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
         <span>Browser</span>
       </div>
-
       <div class="app-item" data-app="settings">
-        <svg viewBox="0 0 24 24">
-          <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>
         <span>Settings</span>
       </div>
-
       <div class="app-item" data-app="terminal">
-        <svg viewBox="0 0 24 24">
-          <polyline points="4 17 10 11 4 5"/>
-          <line x1="12" y1="19" x2="20" y2="19"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         <span>Terminal</span>
       </div>
-
       <div class="app-item" data-app="notepad">
-        <svg viewBox="0 0 24 24">
-          <path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/>
-          <rect width="16" height="18" x="4" y="4" rx="2"/>
-          <path d="M8 10h6"/><path d="M8 14h8"/><path d="M8 18h5"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/><rect width="16" height="18" x="4" y="4" rx="2"/><path d="M8 10h6"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>
         <span>Notepad</span>
       </div>
-
       <div class="app-item" data-app="paint">
-        <svg viewBox="0 0 24 24">
-          <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>
-          <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1 1.08 2.26 2.02 3.96 2.02 2.24 0 4.04-1.8 4.04-4.04 0-1.67-1.35-3.02-3-3.02z"/>
-        </svg>
+        <svg viewBox="0 0 24 24"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1 1.08 2.26 2.02 3.96 2.02 2.24 0 4.04-1.8 4.04-4.04 0-1.67-1.35-3.02-3-3.02z"/></svg>
         <span>Paint</span>
       </div>
-
+      <div class="app-item" data-app="assistant">
+        <svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+        <span>AI Assistant</span>
+      </div>
+      <div class="app-item" data-app="camera">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <span>Camera</span>
+      </div>
     </div>
   </div>
 
-  <!-- Context Menu -->
   <div id="osContextMenu" class="context-menu hidden">
     <div id="ctxNewFile" class="ctx-item">📄 New Text File</div>
   </div>
 
-  <!-- ═══════════════ DOCK ═══════════════ -->
   <div class="dock" id="dock">
-
-    <!-- Start Menu Toggle -->
     <div class="dock-item" id="startMenuBtn">
-      <svg viewBox="0 0 24 24">
-        <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-        <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-        <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-        <rect x="14" y="14" width="7" height="7" rx="1.5"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
-
-    <!-- Calculator -->
     <div class="dock-item" data-app="calculator">
-      <svg viewBox="0 0 24 24">
-        <rect width="16" height="20" x="4" y="2" rx="2"/>
-        <line x1="8" x2="16" y1="6" y2="6"/>
-        <line x1="16" x2="16" y1="14" y2="18"/>
-        <path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/>
-        <path d="M12 14h.01"/><path d="M8 14h.01"/>
-        <path d="M12 18h.01"/><path d="M8 18h.01"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>
     </div>
-
-    <!-- Settings -->
-    <div class="dock-item" data-app="settings">
-      <svg viewBox="0 0 24 24">
-        <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-    </div>
-
-    <!-- Files -->
     <div class="dock-item" data-app="files">
-      <svg viewBox="0 0 24 24">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
     </div>
-
-    <!-- Browser -->
     <div class="dock-item" data-app="browser">
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="2" y1="12" x2="22" y2="12"/>
-        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
     </div>
-
-    <!-- Notepad -->
     <div class="dock-item" data-app="notepad">
-      <svg viewBox="0 0 24 24">
-        <path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/>
-        <rect width="16" height="18" x="4" y="4" rx="2"/>
-        <path d="M8 10h6"/><path d="M8 14h8"/><path d="M8 18h5"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="M8 2v4"/><path d="M12 2v4"/><path d="M16 2v4"/><rect width="16" height="18" x="4" y="4" rx="2"/><path d="M8 10h6"/><path d="M8 14h8"/><path d="M8 18h5"/></svg>
     </div>
-
-    <!-- Terminal -->
     <div class="dock-item" data-app="terminal">
-      <svg viewBox="0 0 24 24">
-        <polyline points="4 17 10 11 4 5"/>
-        <line x1="12" y1="19" x2="20" y2="19"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
     </div>
-
-    <!-- Paint -->
     <div class="dock-item" data-app="paint">
-      <svg viewBox="0 0 24 24">
-        <path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/>
-        <path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1 1.08 2.26 2.02 3.96 2.02 2.24 0 4.04-1.8 4.04-4.04 0-1.67-1.35-3.02-3-3.02z"/>
-      </svg>
+      <svg viewBox="0 0 24 24"><path d="m9.06 11.9 8.07-8.06a2.85 2.85 0 1 1 4.03 4.03l-8.06 8.08"/><path d="M7.07 14.94c-1.66 0-3 1.35-3 3.02 0 1.33-2.5 1.52-2 2.02 1 1.08 2.26 2.02 3.96 2.02 2.24 0 4.04-1.8 4.04-4.04 0-1.67-1.35-3.02-3-3.02z"/></svg>
     </div>
-
+    <div class="dock-item" data-app="settings">
+      <svg viewBox="0 0 24 24"><path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"/><circle cx="12" cy="12" r="3"/></svg>
+    </div>
+    <div class="dock-item" data-app="assistant">
+      <svg viewBox="0 0 24 24"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/><path d="M5 3v4"/><path d="M19 17v4"/><path d="M3 5h4"/><path d="M17 19h4"/></svg>
+    </div>
+    <div class="dock-item" data-app="camera">
+      <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+    </div>
   </div>
 
   <script src="script.js"></script>

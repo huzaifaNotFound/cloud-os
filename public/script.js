@@ -1,14 +1,8 @@
-/* ═══════════════════════════════════════════════════
-   CLOUD OS — COMBINED SCRIPT
-   v1 aesthetic + v2 features
-   ═══════════════════════════════════════════════════ */
+const wallpaper  = document.getElementById("wallpaper");
+const liveCanvas = document.getElementById("liveWallpaper");
+const dock       = document.getElementById("dock");
+const weatherEl  = document.getElementById("weather");
 
-const wallpaper    = document.getElementById("wallpaper");
-const liveCanvas   = document.getElementById("liveWallpaper");
-const dock         = document.getElementById("dock");
-const weatherEl    = document.getElementById("weather");
-
-/* ── TIME & DATE ─────────────────────────────────── */
 function updateTime() {
   const now = new Date();
   document.getElementById("time").textContent =
@@ -19,9 +13,8 @@ function updateTime() {
 setInterval(updateTime, 1000);
 updateTime();
 
-/* ── BACKGROUND SAMPLING / THEME ─────────────────── */
 const samplerCanvas = document.createElement("canvas");
-const samplerCtx    = samplerCanvas.getContext("2d");
+const samplerCtx   = samplerCanvas.getContext("2d");
 
 function sampleAndTheme() {
   try {
@@ -29,9 +22,7 @@ function sampleAndTheme() {
     samplerCanvas.height = wallpaper.naturalHeight;
     samplerCtx.drawImage(wallpaper, 0, 0);
     updateTheme();
-  } catch(e) {
-    // CORS — skip sampling, keep defaults
-  }
+  } catch(e) {}
 }
 
 wallpaper.onload = sampleAndTheme;
@@ -39,34 +30,21 @@ if (wallpaper.complete && wallpaper.naturalWidth) sampleAndTheme();
 
 function updateTheme() {
   try {
-    const x = samplerCanvas.width / 2;
-    const y = samplerCanvas.height * 0.85;
-    const [r, g, b] = samplerCtx.getImageData(x, y, 1, 1).data;
-    const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-
-    if (brightness > 140) {
-      dock.style.background      = "rgba(0,0,0,0.55)";
-      weatherEl.style.background = "rgba(0,0,0,0.45)";
-    } else {
-      dock.style.background      = "rgba(255,255,255,0.18)";
-      weatherEl.style.background = "rgba(255,255,255,0.12)";
-    }
-    dock.style.color      = "white";
-    weatherEl.style.color = "white";
+    const [r, g, b] = samplerCtx.getImageData(samplerCanvas.width / 2, samplerCanvas.height * 0.85, 1, 1).data;
+    const bright = (r * 299 + g * 587 + b * 114) / 1000;
+    dock.style.background      = bright > 140 ? "rgba(0,0,0,0.55)"    : "rgba(255,255,255,0.18)";
+    weatherEl.style.background = bright > 140 ? "rgba(0,0,0,0.45)"    : "rgba(255,255,255,0.12)";
+    dock.style.color = weatherEl.style.color = "white";
   } catch(e) {
     dock.style.background = "rgba(0,0,0,0.5)";
   }
 }
 
-/* ── WEATHER ─────────────────────────────────────── */
-const WEATHER_API_KEY = "8c613d9a099482bf87481c0354e07439";
-const iconMap = {
-  Clear:"☀️", Clouds:"☁️", Rain:"🌧️", Drizzle:"🌦️",
-  Thunderstorm:"⛈️", Snow:"❄️", Mist:"🌫️", Haze:"🌫️", Fog:"🌫️"
-};
+const WEATHER_KEY = "8c613d9a099482bf87481c0354e07439";
+const iconMap = { Clear:"☀️", Clouds:"☁️", Rain:"🌧️", Drizzle:"🌦️", Thunderstorm:"⛈️", Snow:"❄️", Mist:"🌫️", Haze:"🌫️", Fog:"🌫️" };
 
 function getWeather(lat, lon) {
-  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${WEATHER_API_KEY}`)
+  fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${WEATHER_KEY}`)
     .then(r => r.json())
     .then(d => {
       document.getElementById("temp").textContent      = Math.round(d.main.temp) + "°C";
@@ -75,26 +53,19 @@ function getWeather(lat, lon) {
       document.getElementById("details").textContent   = "Humidity: " + d.main.humidity + "%";
       document.getElementById("icon").textContent      = iconMap[d.weather[0].main] || "🌍";
     })
-    .catch(() => {
-      document.getElementById("condition").textContent = "Weather unavailable";
-    });
+    .catch(() => { document.getElementById("condition").textContent = "Weather unavailable"; });
 }
 
 if (navigator.geolocation) {
   navigator.geolocation.getCurrentPosition(
-    pos => getWeather(pos.coords.latitude, pos.coords.longitude),
-    ()  => { document.getElementById("condition").textContent = "Location blocked"; }
+    p => getWeather(p.coords.latitude, p.coords.longitude),
+    () => { document.getElementById("condition").textContent = "Location blocked"; }
   );
 }
 
-/* ══════════════════════════════════════════════════
-   WINDOW SYSTEM
-   ══════════════════════════════════════════════════ */
-
 let highestZ = 2000;
 
-/* Open any app window by name */
-function openApp(appName) {
+function openApp(name) {
   const map = {
     calculator: "calculatorWindow",
     files:      "filesWindow",
@@ -102,21 +73,16 @@ function openApp(appName) {
     settings:   "settingsWindow",
     terminal:   "terminalWindow",
     notepad:    "notepadWindow",
-    paint:      "paintWindow"
+    paint:      "paintWindow",
+    assistant:  "assistantWindow",
+    camera:     "cameraWindow"
   };
-  const el = document.getElementById(map[appName]);
-  if (el) {
-    el.classList.remove("hidden");
-    bringToFront(el);
-  }
+  const el = document.getElementById(map[name]);
+  if (el) { el.classList.remove("hidden"); bringToFront(el); }
 }
 
-function bringToFront(win) {
-  highestZ++;
-  win.style.zIndex = highestZ;
-}
+function bringToFront(win) { win.style.zIndex = ++highestZ; }
 
-/* Close buttons — all windows */
 document.querySelectorAll(".close-btn").forEach(btn => {
   btn.addEventListener("click", e => {
     e.stopPropagation();
@@ -124,51 +90,37 @@ document.querySelectorAll(".close-btn").forEach(btn => {
   });
 });
 
-/* Bring window to front on click */
 document.querySelectorAll(".window").forEach(win => {
   win.addEventListener("mousedown", () => bringToFront(win));
 });
 
-/* ── DRAGGABLE WINDOWS ───────────────────────────── */
-(function makeWindowsDraggable() {
-  let dragging = null;
-  let startMouseX, startMouseY, startLeft, startTop;
+(function makeDraggable() {
+  let dragging = null, sx, sy, sl, st;
 
   document.addEventListener("mousedown", e => {
-    const header = e.target.closest(".draggable-header");
-    if (!header) return;
-    if (e.target.classList.contains("close-btn")) return;
-
-    dragging = header.closest(".window");
+    const h = e.target.closest(".draggable-header");
+    if (!h || e.target.classList.contains("close-btn")) return;
+    dragging = h.closest(".window");
     if (!dragging) return;
-
     bringToFront(dragging);
-
-    startMouseX = e.clientX;
-    startMouseY = e.clientY;
-
-    const rect = dragging.getBoundingClientRect();
-    startLeft = rect.left;
-    startTop  = rect.top;
-
-    // Ensure absolute positioning from current visual position
-    dragging.style.left = startLeft + "px";
-    dragging.style.top  = startTop  + "px";
+    sx = e.clientX; sy = e.clientY;
+    const r = dragging.getBoundingClientRect();
+    sl = r.left; st = r.top;
+    dragging.style.left = sl + "px";
+    dragging.style.top  = st + "px";
     dragging.style.transform = "";
-
     e.preventDefault();
   });
 
   document.addEventListener("mousemove", e => {
     if (!dragging) return;
-    dragging.style.left = (startLeft + e.clientX - startMouseX) + "px";
-    dragging.style.top  = (startTop  + e.clientY - startMouseY) + "px";
+    dragging.style.left = (sl + e.clientX - sx) + "px";
+    dragging.style.top  = (st + e.clientY - sy) + "px";
   });
 
   document.addEventListener("mouseup", () => { dragging = null; });
 })();
 
-/* ── DOCK CLICKS ─────────────────────────────────── */
 document.querySelectorAll(".dock-item[data-app]").forEach(item => {
   item.addEventListener("click", e => {
     e.stopPropagation();
@@ -176,7 +128,6 @@ document.querySelectorAll(".dock-item[data-app]").forEach(item => {
   });
 });
 
-/* ── START MENU ──────────────────────────────────── */
 const startMenu    = document.getElementById("startMenu");
 const startMenuBtn = document.getElementById("startMenuBtn");
 
@@ -185,14 +136,12 @@ startMenuBtn.addEventListener("click", e => {
   startMenu.classList.toggle("hidden");
 });
 
-// Close on outside click
 document.addEventListener("click", e => {
-  if (!startMenu.contains(e.target) && e.target !== startMenuBtn && !startMenuBtn.contains(e.target)) {
+  if (!startMenu.contains(e.target) && !startMenuBtn.contains(e.target)) {
     startMenu.classList.add("hidden");
   }
 });
 
-// Start menu app items
 document.querySelectorAll(".app-item[data-app]").forEach(item => {
   item.addEventListener("click", () => {
     openApp(item.getAttribute("data-app"));
@@ -200,86 +149,59 @@ document.querySelectorAll(".app-item[data-app]").forEach(item => {
   });
 });
 
-/* ══════════════════════════════════════════════════
-   CALCULATOR
-   ══════════════════════════════════════════════════ */
 (function initCalculator() {
-  let calcInput   = "0";
-  let operator    = null;
-  let prevVal     = null;
-  let freshInput  = false;
-
-  const display = document.getElementById("calcDisplay");
-  const update  = () => { display.value = calcInput; };
+  let input = "0", op = null, prev = null, fresh = false;
+  const disp = document.getElementById("calcDisplay");
+  const show = () => { disp.value = input; };
 
   document.querySelectorAll(".calc-btn[data-value]").forEach(btn => {
     btn.addEventListener("click", () => {
       const v = btn.getAttribute("data-value");
-      if (v === "." && calcInput.includes(".")) return;
-      if (freshInput || calcInput === "0") {
-        calcInput  = (v === ".") ? "0." : v;
-        freshInput = false;
-      } else {
-        calcInput += v;
-      }
-      update();
+      if (v === "." && input.includes(".")) return;
+      if (fresh || input === "0") { input = v === "." ? "0." : v; fresh = false; }
+      else input += v;
+      show();
     });
   });
 
   document.querySelectorAll(".calc-btn.operator").forEach(btn => {
     btn.addEventListener("click", () => {
-      prevVal    = parseFloat(calcInput);
-      operator   = btn.getAttribute("data-op");
-      freshInput = true;
+      prev  = parseFloat(input);
+      op    = btn.getAttribute("data-op");
+      fresh = true;
     });
   });
 
   document.getElementById("calcEquals")?.addEventListener("click", () => {
-    if (operator === null || prevVal === null) return;
-    const cur = parseFloat(calcInput);
-    let result;
-    switch(operator) {
-      case "+": result = prevVal + cur; break;
-      case "-": result = prevVal - cur; break;
-      case "*": result = prevVal * cur; break;
-      case "/": result = cur !== 0 ? prevVal / cur : "Error"; break;
+    if (op === null || prev === null) return;
+    const cur = parseFloat(input);
+    let r;
+    switch(op) {
+      case "+": r = prev + cur; break;
+      case "-": r = prev - cur; break;
+      case "*": r = prev * cur; break;
+      case "/": r = cur !== 0 ? prev / cur : "Error"; break;
     }
-    calcInput  = String(result);
-    operator   = null;
-    prevVal    = null;
-    freshInput = true;
-    update();
+    input = String(r); op = null; prev = null; fresh = true;
+    show();
   });
 
   document.getElementById("calcClear")?.addEventListener("click", () => {
-    calcInput  = "0";
-    operator   = null;
-    prevVal    = null;
-    freshInput = false;
-    update();
+    input = "0"; op = null; prev = null; fresh = false;
+    show();
   });
 
-  // Keyboard support
   document.getElementById("calculatorWindow")?.addEventListener("keydown", e => {
     if (document.getElementById("calculatorWindow").classList.contains("hidden")) return;
     const k = e.key;
-    if ("0123456789.".includes(k)) {
-      document.querySelector(`.calc-btn[data-value="${k}"]`)?.click();
-    } else if (k === "Enter" || k === "=") {
-      document.getElementById("calcEquals")?.click();
-    } else if (k === "Escape") {
-      document.getElementById("calcClear")?.click();
-    } else if (["+","-","*","/"].includes(k)) {
-      document.querySelector(`.calc-btn[data-op="${k}"]`)?.click();
-    }
+    if ("0123456789.".includes(k)) document.querySelector(`.calc-btn[data-value="${k}"]`)?.click();
+    else if (k === "Enter" || k === "=") document.getElementById("calcEquals")?.click();
+    else if (k === "Escape") document.getElementById("calcClear")?.click();
+    else if (["+","-","*","/"].includes(k)) document.querySelector(`.calc-btn[data-op="${k}"]`)?.click();
   });
 })();
 
-/* ══════════════════════════════════════════════════
-   SETTINGS
-   ══════════════════════════════════════════════════ */
 (function initSettings() {
-  // Tab switching
   document.querySelectorAll(".settings-tab").forEach(tab => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".settings-tab").forEach(t => t.classList.remove("active"));
@@ -289,80 +211,69 @@ document.querySelectorAll(".app-item[data-app]").forEach(item => {
     });
   });
 
-  // Theme selection
-  document.querySelectorAll("input[name='osTheme']").forEach(radio => {
-    radio.addEventListener("change", e => {
+  document.querySelectorAll("input[name='osTheme']").forEach(r => {
+    r.addEventListener("change", e => {
       document.body.className = e.target.value === "dark" ? "" : "theme-" + e.target.value;
     });
   });
 
-  // Accent colour
   document.getElementById("osAccentColor")?.addEventListener("input", e => {
     document.documentElement.style.setProperty("--accent", e.target.value);
   });
 
   let animFrame;
 
-  // Live wallpapers
   document.getElementById("liveBgGradient")?.addEventListener("click", () => {
     wallpaper.style.display = "none";
     liveCanvas.style.display = "block";
     cancelAnimationFrame(animFrame);
-
-    liveCanvas.width  = window.innerWidth;
+    liveCanvas.width = window.innerWidth;
     liveCanvas.height = window.innerHeight;
     const ctx = liveCanvas.getContext("2d");
-    let time = 0;
-
-    function drawGradient() {
+    let t = 0;
+    function draw() {
       liveCanvas.width = window.innerWidth;
       liveCanvas.height = window.innerHeight;
       const g = ctx.createLinearGradient(0, 0, liveCanvas.width, liveCanvas.height);
-      g.addColorStop(0, `hsl(${time % 360},70%,60%)`);
-      g.addColorStop(1, `hsl(${(time + 90) % 360},70%,40%)`);
+      g.addColorStop(0, `hsl(${t % 360},70%,60%)`);
+      g.addColorStop(1, `hsl(${(t + 90) % 360},70%,40%)`);
       ctx.fillStyle = g;
       ctx.fillRect(0, 0, liveCanvas.width, liveCanvas.height);
-      time += 0.5;
-      animFrame = requestAnimationFrame(drawGradient);
+      t += 0.5;
+      animFrame = requestAnimationFrame(draw);
     }
-    drawGradient();
+    draw();
   });
 
   document.getElementById("liveBgParticles")?.addEventListener("click", () => {
     wallpaper.style.display = "none";
     liveCanvas.style.display = "block";
     cancelAnimationFrame(animFrame);
-
-    liveCanvas.width  = window.innerWidth;
+    liveCanvas.width = window.innerWidth;
     liveCanvas.height = window.innerHeight;
     const ctx = liveCanvas.getContext("2d");
-
-    const particles = Array.from({ length: 120 }, () => ({
+    const pts = Array.from({ length: 120 }, () => ({
       x: Math.random() * liveCanvas.width,
       y: Math.random() * liveCanvas.height,
       s: Math.random() * 2 + 0.5,
       v: Math.random() * 0.6 + 0.15
     }));
-
-    function drawStars() {
+    function draw() {
       ctx.fillStyle = "#08111f";
       ctx.fillRect(0, 0, liveCanvas.width, liveCanvas.height);
       ctx.fillStyle = "white";
-      particles.forEach(p => {
+      pts.forEach(p => {
         ctx.globalAlpha = 0.7 + Math.sin(Date.now() / 1000 + p.x) * 0.3;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.s, 0, Math.PI * 2); ctx.fill();
         p.y -= p.v;
         if (p.y < 0) { p.y = liveCanvas.height; p.x = Math.random() * liveCanvas.width; }
       });
       ctx.globalAlpha = 1;
-      animFrame = requestAnimationFrame(drawStars);
+      animFrame = requestAnimationFrame(draw);
     }
-    drawStars();
+    draw();
   });
 
-  // Static wallpapers
   document.querySelectorAll(".bg-grid img").forEach(img => {
     img.addEventListener("click", () => {
       cancelAnimationFrame(animFrame);
@@ -373,9 +284,6 @@ document.querySelectorAll(".app-item[data-app]").forEach(item => {
   });
 })();
 
-/* ══════════════════════════════════════════════════
-   VIRTUAL FILE SYSTEM & FILES APP
-   ══════════════════════════════════════════════════ */
 const DEFAULT_VFS = {
   Home:      { "readme.txt": { type:"text", content:"Welcome to Cloud OS!\n\nThis is your virtual file system.\nYou can create, edit, and delete files here." } },
   Documents: {},
@@ -384,10 +292,8 @@ const DEFAULT_VFS = {
 };
 
 function loadVFS() {
-  try {
-    const v = JSON.parse(localStorage.getItem("vfs_data"));
-    return v && v.Home ? v : DEFAULT_VFS;
-  } catch(e) { return DEFAULT_VFS; }
+  try { const v = JSON.parse(localStorage.getItem("vfs_data")); return v && v.Home ? v : DEFAULT_VFS; }
+  catch(e) { return DEFAULT_VFS; }
 }
 
 function saveVFS(vfs) {
@@ -395,667 +301,632 @@ function saveVFS(vfs) {
 }
 
 (function initFiles() {
-  let vfs           = loadVFS();
-  let currentFolder = "Home";
+  let vfs = loadVFS();
+  let folder = "Home";
 
-  const filesList    = document.getElementById("filesList");
-  const pathLabel    = document.getElementById("currentPath");
-  const modal        = document.getElementById("fileModal");
-  const nameInput    = document.getElementById("fileNameInput");
-  const contentInput = document.getElementById("fileContentInput");
-  const contextMenu  = document.getElementById("osContextMenu");
+  const list    = document.getElementById("filesList");
+  const path    = document.getElementById("currentPath");
+  const modal   = document.getElementById("fileModal");
+  const nameIn  = document.getElementById("fileNameInput");
+  const contIn  = document.getElementById("fileContentInput");
+  const ctxMenu = document.getElementById("osContextMenu");
 
-  if (!filesList) return;
+  if (!list) return;
 
-  const renderFiles = window.refreshFiles = () => {
-    filesList.innerHTML = "";
-    if (pathLabel) pathLabel.textContent = "/" + currentFolder;
-
-    const folder = vfs[currentFolder] || {};
-    Object.entries(folder).forEach(([filename, fileData]) => {
-      const item = document.createElement("div");
-      item.className = "file-item";
-      const icon = fileData.type === "image" ? "🖼️" : "📄";
-      item.innerHTML = `
-        <span class="file-icon">${icon}</span>
-        <span style="word-break:break-all;font-size:11px;">${filename}</span>
-        <button class="del-btn">✕</button>
-      `;
-
-      item.addEventListener("dblclick", () => {
-        if (fileData.type === "text") window.openNotepad?.(filename, fileData.content);
+  const render = window.refreshFiles = () => {
+    list.innerHTML = "";
+    if (path) path.textContent = "/" + folder;
+    Object.entries(vfs[folder] || {}).forEach(([name, data]) => {
+      const el = document.createElement("div");
+      el.className = "file-item";
+      el.innerHTML = `<span class="file-icon">${data.type === "image" ? "🖼️" : "📄"}</span><span style="word-break:break-all;font-size:11px;">${name}</span><button class="del-btn">✕</button>`;
+      el.addEventListener("dblclick", () => {
+        if (data.type === "text") window.openNotepad?.(name, data.content);
         else openApp("paint");
       });
-
-      item.querySelector(".del-btn").addEventListener("click", e => {
+      el.querySelector(".del-btn").addEventListener("click", e => {
         e.stopPropagation();
-        if (confirm("Delete " + filename + "?")) {
-          delete vfs[currentFolder][filename];
-          saveVFS(vfs);
-          renderFiles();
-        }
+        if (confirm("Delete " + name + "?")) { delete vfs[folder][name]; saveVFS(vfs); render(); }
       });
-
-      filesList.appendChild(item);
+      list.appendChild(el);
     });
   };
 
-  // Sidebar folder switching
   document.querySelectorAll(".sidebar-item").forEach(el => {
     el.addEventListener("click", () => {
       document.querySelectorAll(".sidebar-item").forEach(i => i.classList.remove("active"));
       el.classList.add("active");
-      // Extract folder name from emoji text like "🏠 Home" -> "Home"
-      const text = el.textContent.replace(/[^a-zA-Z]/g, "").trim();
-      currentFolder = text || "Home";
-      renderFiles();
+      folder = el.textContent.replace(/[^a-zA-Z]/g, "").trim() || "Home";
+      render();
     });
   });
 
-  // New file button
   document.getElementById("newFileBtn")?.addEventListener("click", () => {
-    nameInput.value    = "";
-    contentInput.value = "";
-    modal.classList.remove("hidden");
-    nameInput.focus();
+    nameIn.value = ""; contIn.value = "";
+    modal.classList.remove("hidden"); nameIn.focus();
   });
 
-  document.getElementById("fileCancelBtn")?.addEventListener("click", () => {
-    modal.classList.add("hidden");
-  });
+  document.getElementById("fileCancelBtn")?.addEventListener("click", () => modal.classList.add("hidden"));
 
   document.getElementById("fileSaveBtn")?.addEventListener("click", () => {
-    const fname = nameInput.value.trim() || "untitled.txt";
-    vfs[currentFolder]       = vfs[currentFolder] || {};
-    vfs[currentFolder][fname] = { type:"text", content: contentInput.value };
-    saveVFS(vfs);
-    modal.classList.add("hidden");
-    renderFiles();
+    const n = nameIn.value.trim() || "untitled.txt";
+    vfs[folder] = vfs[folder] || {};
+    vfs[folder][n] = { type:"text", content: contIn.value };
+    saveVFS(vfs); modal.classList.add("hidden"); render();
   });
 
-  // Context menu on file list
-  if (contextMenu) {
-    filesList.addEventListener("contextmenu", e => {
+  if (ctxMenu) {
+    list.addEventListener("contextmenu", e => {
       e.preventDefault();
-      contextMenu.style.left = e.pageX + "px";
-      contextMenu.style.top  = e.pageY + "px";
-      contextMenu.classList.remove("hidden");
+      ctxMenu.style.left = e.pageX + "px";
+      ctxMenu.style.top  = e.pageY + "px";
+      ctxMenu.classList.remove("hidden");
     });
-    document.addEventListener("click", e => {
-      if (!contextMenu.contains(e.target)) contextMenu.classList.add("hidden");
-    });
+    document.addEventListener("click", e => { if (!ctxMenu.contains(e.target)) ctxMenu.classList.add("hidden"); });
     document.getElementById("ctxNewFile")?.addEventListener("click", () => {
-      contextMenu.classList.add("hidden");
+      ctxMenu.classList.add("hidden");
       document.getElementById("newFileBtn")?.click();
     });
   }
 
-  // Expose VFS image save for Paint
   window.saveVfsImage = (filename, dataUrl) => {
     const v = loadVFS();
     v.Pictures = v.Pictures || {};
     v.Pictures[filename] = { type:"image", content: dataUrl };
     saveVFS(v);
-    if (currentFolder === "Pictures") renderFiles();
+    if (folder === "Pictures") render();
   };
 
-  renderFiles();
+  render();
 })();
 
-/* ══════════════════════════════════════════════════
-   BROWSER
-   ══════════════════════════════════════════════════ */
 (function initBrowser() {
-  const tabsEl       = document.getElementById("browserTabs");
-  const framesEl     = document.getElementById("browserFrames");
-  const urlBar       = document.getElementById("urlBar");
-  const bookmarksBar = document.getElementById("bookmarksBar");
-  const bookmarkBtn  = document.getElementById("bookmarkBtn");
-  const loadingBar   = document.getElementById("loadingBar");
+  const tabsEl   = document.getElementById("browserTabs");
+  const framesEl = document.getElementById("browserFrames");
+  const urlBar   = document.getElementById("urlBar");
+  const bBar     = document.getElementById("bookmarksBar");
+  const bBtn     = document.getElementById("bookmarkBtn");
+  const loadBar  = document.getElementById("loadingBar");
 
   if (!tabsEl || !framesEl) return;
 
-  const HOME_URL = "https://www.google.com/search?igu=1";
-
-  let tabs       = [];
-  let activeTabId = null;
-  let tabCounter  = 0;
+  const HOME = "https://www.google.com/search?igu=1";
+  let tabs = [], activeId = null, counter = 0;
 
   let bookmarks = (() => {
     try { return JSON.parse(localStorage.getItem("browser_bookmarks")) || []; } catch(e) { return []; }
   })();
   if (!bookmarks.length) bookmarks = [
-    { name:"Google",    url: HOME_URL },
+    { name:"Google",    url: HOME },
     { name:"Wikipedia", url:"https://en.wikipedia.org" },
     { name:"GitHub",    url:"https://github.com" }
   ];
 
-  const saveBookmarks = () => {
-    try { localStorage.setItem("browser_bookmarks", JSON.stringify(bookmarks)); } catch(e) {}
+  const saveB = () => { try { localStorage.setItem("browser_bookmarks", JSON.stringify(bookmarks)); } catch(e) {} };
+
+  const fmt = u => {
+    if (!u.startsWith("http://") && !u.startsWith("https://"))
+      return u.includes(".") && !u.includes(" ") ? "https://" + u : "https://www.google.com/search?igu=1&q=" + encodeURIComponent(u);
+    return u;
   };
 
-  const formatUrl = (url) => {
-    if (!url.startsWith("http://") && !url.startsWith("https://")) {
-      if (url.includes(".") && !url.includes(" ")) return "https://" + url;
-      return "https://www.google.com/search?igu=1&q=" + encodeURIComponent(url);
-    }
-    return url;
+  const triggerLoad = () => {
+    if (!loadBar) return;
+    loadBar.style.width = "0%";
+    setTimeout(() => { loadBar.style.width = "70%"; }, 20);
+    setTimeout(() => { loadBar.style.width = "100%"; }, 600);
+    setTimeout(() => { loadBar.style.width = "0%"; }, 1100);
   };
 
-  const triggerLoading = () => {
-    if (!loadingBar) return;
-    loadingBar.style.width = "0%";
-    setTimeout(() => { loadingBar.style.width = "70%"; }, 20);
-    setTimeout(() => { loadingBar.style.width = "100%"; }, 600);
-    setTimeout(() => { loadingBar.style.width = "0%"; }, 1100);
-  };
-
-  const renderBookmarks = () => {
-    if (!bookmarksBar) return;
-    bookmarksBar.innerHTML = "";
+  const renderB = () => {
+    if (!bBar) return;
+    bBar.innerHTML = "";
     bookmarks.forEach((b, i) => {
       const el = document.createElement("div");
-      el.className   = "bookmark-item";
+      el.className = "bookmark-item";
       el.textContent = b.name;
       el.addEventListener("click", () => navigate(b.url));
       el.addEventListener("contextmenu", e => {
         e.preventDefault();
-        if (confirm("Remove bookmark: " + b.name + "?")) {
-          bookmarks.splice(i, 1);
-          saveBookmarks();
-          renderBookmarks();
-          updateBookmarkIcon();
-        }
+        if (confirm("Remove bookmark: " + b.name + "?")) { bookmarks.splice(i, 1); saveB(); renderB(); updateBIcon(); }
       });
-      bookmarksBar.appendChild(el);
+      bBar.appendChild(el);
     });
   };
 
-  const updateBookmarkIcon = () => {
-    if (!bookmarkBtn) return;
-    const tab = tabs.find(t => t.id === activeTabId);
+  const updateBIcon = () => {
+    if (!bBtn) return;
+    const tab = tabs.find(t => t.id === activeId);
     if (!tab) return;
     const saved = bookmarks.some(b => b.url === tab.url);
-    bookmarkBtn.textContent = saved ? "★" : "☆";
-    bookmarkBtn.classList.toggle("bookmarked", saved);
+    bBtn.textContent = saved ? "★" : "☆";
+    bBtn.classList.toggle("bookmarked", saved);
   };
 
   const renderTabs = () => {
-    if (!tabsEl) return;
     tabsEl.innerHTML = "";
     tabs.forEach(tab => {
       const el = document.createElement("div");
-      el.className  = "browser-tab" + (tab.id === activeTabId ? " active" : "");
-      const label   = tab.url.replace(/https?:\/\/(www\.)?/, "").split("/")[0] || "New Tab";
-      el.innerHTML  = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span><div class="tab-close">✕</div>`;
+      el.className = "browser-tab" + (tab.id === activeId ? " active" : "");
+      el.innerHTML = `<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${tab.url.replace(/https?:\/\/(www\.)?/,"").split("/")[0]||"New Tab"}</span><div class="tab-close">✕</div>`;
       el.addEventListener("click", () => switchTab(tab.id));
       el.querySelector(".tab-close").addEventListener("click", e => { e.stopPropagation(); closeTab(tab.id); });
       tabsEl.appendChild(el);
     });
-    // Show/hide frames
-    document.querySelectorAll(".browser-iframe").forEach(f => {
-      f.classList.toggle("active", f.id === "frame_" + activeTabId);
-    });
-    const activeTab = tabs.find(t => t.id === activeTabId);
-    if (activeTab && urlBar) urlBar.value = activeTab.url;
-    updateBookmarkIcon();
+    document.querySelectorAll(".browser-iframe").forEach(f => f.classList.toggle("active", f.id === "frame_" + activeId));
+    const tab = tabs.find(t => t.id === activeId);
+    if (tab && urlBar) urlBar.value = tab.url;
+    updateBIcon();
   };
 
-  const navigate = (url) => {
-    const tab = tabs.find(t => t.id === activeTabId);
+  const navigate = url => {
+    const tab = tabs.find(t => t.id === activeId);
     if (!tab) return;
-    const fUrl = formatUrl(url);
-    tab.url = fUrl;
-    tab.history = tab.history.slice(0, tab.histIdx + 1);
-    tab.history.push(fUrl);
-    tab.histIdx++;
-    const frame = document.getElementById("frame_" + activeTabId);
-    if (frame) { frame.src = fUrl; triggerLoading(); }
+    const u = fmt(url);
+    tab.url = u; tab.history = tab.history.slice(0, tab.histIdx + 1);
+    tab.history.push(u); tab.histIdx++;
+    const fr = document.getElementById("frame_" + activeId);
+    if (fr) { fr.src = u; triggerLoad(); }
     renderTabs();
   };
 
-  const newTab = (url = HOME_URL) => {
-    const id = ++tabCounter;
-    const fUrl = formatUrl(url);
-    tabs.push({ id, url:fUrl, history:[fUrl], histIdx:0 });
-    const frame = document.createElement("iframe");
-    frame.id        = "frame_" + id;
-    frame.className = "browser-iframe";
-    frame.src       = fUrl;
-    if (framesEl) framesEl.appendChild(frame);
-    activeTabId = id;
-    triggerLoading();
-    renderTabs();
+  const newTab = (url = HOME) => {
+    const id = ++counter, u = fmt(url);
+    tabs.push({ id, url:u, history:[u], histIdx:0 });
+    const fr = document.createElement("iframe");
+    fr.id = "frame_" + id; fr.className = "browser-iframe"; fr.src = u;
+    framesEl.appendChild(fr);
+    activeId = id; triggerLoad(); renderTabs();
   };
 
-  const switchTab = (id) => { activeTabId = id; renderTabs(); };
+  const switchTab = id => { activeId = id; renderTabs(); };
 
-  const closeTab = (id) => {
+  const closeTab = id => {
     tabs = tabs.filter(t => t.id !== id);
     document.getElementById("frame_" + id)?.remove();
     if (!tabs.length) { newTab(); return; }
-    if (activeTabId === id) activeTabId = tabs[tabs.length - 1].id;
+    if (activeId === id) activeId = tabs[tabs.length - 1].id;
     renderTabs();
   };
 
   document.getElementById("newTabBtn")?.addEventListener("click", () => newTab());
-
-  urlBar?.addEventListener("keypress", e => {
-    if (e.key === "Enter") navigate(urlBar.value);
-  });
-
-  document.getElementById("homeBtn")?.addEventListener("click", () => navigate(HOME_URL));
-
+  urlBar?.addEventListener("keypress", e => { if (e.key === "Enter") navigate(urlBar.value); });
+  document.getElementById("homeBtn")?.addEventListener("click", () => navigate(HOME));
   document.getElementById("refreshBtn")?.addEventListener("click", () => {
-    const frame = document.getElementById("frame_" + activeTabId);
-    if (frame) { frame.src = frame.src; triggerLoading(); }
+    const fr = document.getElementById("frame_" + activeId);
+    if (fr) { fr.src = fr.src; triggerLoad(); }
   });
-
   document.getElementById("backBtn")?.addEventListener("click", () => {
-    const tab = tabs.find(t => t.id === activeTabId);
-    if (tab && tab.histIdx > 0) {
-      tab.histIdx--;
-      tab.url = tab.history[tab.histIdx];
-      const frame = document.getElementById("frame_" + activeTabId);
-      if (frame) { frame.src = tab.url; triggerLoading(); }
-      renderTabs();
-    }
+    const tab = tabs.find(t => t.id === activeId);
+    if (tab && tab.histIdx > 0) { tab.histIdx--; tab.url = tab.history[tab.histIdx]; const fr = document.getElementById("frame_" + activeId); if (fr) { fr.src = tab.url; triggerLoad(); } renderTabs(); }
   });
-
   document.getElementById("forwardBtn")?.addEventListener("click", () => {
-    const tab = tabs.find(t => t.id === activeTabId);
-    if (tab && tab.histIdx < tab.history.length - 1) {
-      tab.histIdx++;
-      tab.url = tab.history[tab.histIdx];
-      const frame = document.getElementById("frame_" + activeTabId);
-      if (frame) { frame.src = tab.url; triggerLoading(); }
-      renderTabs();
-    }
+    const tab = tabs.find(t => t.id === activeId);
+    if (tab && tab.histIdx < tab.history.length - 1) { tab.histIdx++; tab.url = tab.history[tab.histIdx]; const fr = document.getElementById("frame_" + activeId); if (fr) { fr.src = tab.url; triggerLoad(); } renderTabs(); }
   });
-
-  bookmarkBtn?.addEventListener("click", () => {
-    const tab = tabs.find(t => t.id === activeTabId);
+  bBtn?.addEventListener("click", () => {
+    const tab = tabs.find(t => t.id === activeId);
     if (!tab) return;
     const idx = bookmarks.findIndex(b => b.url === tab.url);
-    if (idx > -1) {
-      bookmarks.splice(idx, 1);
-    } else {
-      const name = prompt("Bookmark name:", tab.url.replace(/https?:\/\/(www\.)?/, "").split("/")[0]);
-      if (name) bookmarks.push({ name, url: tab.url });
-    }
-    saveBookmarks();
-    renderBookmarks();
-    updateBookmarkIcon();
+    if (idx > -1) bookmarks.splice(idx, 1);
+    else { const n = prompt("Bookmark name:", tab.url.replace(/https?:\/\/(www\.)?/,"").split("/")[0]); if (n) bookmarks.push({ name:n, url:tab.url }); }
+    saveB(); renderB(); updateBIcon();
   });
 
-  // Open browser creates first tab
-  document.querySelector(".dock-item[data-app='browser']")?.addEventListener("click", () => {
-    if (tabs.length === 0) newTab();
-  });
-
-  document.querySelector(".app-item[data-app='browser']")?.addEventListener("click", () => {
-    if (tabs.length === 0) newTab();
-  });
-
-  renderBookmarks();
-  newTab();
+  renderB(); newTab();
 })();
 
-/* ══════════════════════════════════════════════════
-   PAINT
-   ══════════════════════════════════════════════════ */
 (function initPaint() {
   const canvas = document.getElementById("paintCanvas");
   if (!canvas) return;
   const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  let history = [], step = -1, eraser = false, painting = false, lx = 0, ly = 0;
 
-  let history   = [];
-  let histStep  = -1;
-  let isEraser  = false;
-  let painting  = false;
-  let lastX = 0, lastY = 0;
-
-  const saveState = () => {
-    histStep++;
-    history = history.slice(0, histStep);
-    history.push(canvas.toDataURL());
+  const save = () => { step++; history = history.slice(0, step); history.push(canvas.toDataURL()); };
+  const restore = () => {
+    if (step < 0 || step >= history.length) return;
+    const img = new Image(); img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); }; img.src = history[step];
+  };
+  const resize = () => {
+    const p = canvas.parentElement;
+    if (!p) return;
+    const r = p.getBoundingClientRect();
+    if (r.width < 10) return;
+    const saved = step >= 0 ? history[step] : null;
+    canvas.width = r.width; canvas.height = r.height;
+    ctx.fillStyle = "white"; ctx.fillRect(0,0,canvas.width,canvas.height);
+    if (saved) { const img = new Image(); img.onload = () => ctx.drawImage(img,0,0); img.src = saved; }
+    else save();
   };
 
-  const restoreState = () => {
-    if (histStep < 0 || histStep >= history.length) return;
-    const img = new Image();
-    img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
-    img.src = history[histStep];
+  new ResizeObserver(() => { if (!document.getElementById("paintWindow")?.classList.contains("hidden")) resize(); }).observe(canvas.parentElement);
+  document.querySelectorAll("[data-app='paint']").forEach(b => b.addEventListener("click", () => setTimeout(resize, 60)));
+
+  const pos = e => {
+    const r = canvas.getBoundingClientRect();
+    return { x:(e.clientX??e.touches?.[0]?.clientX??0)-r.left, y:(e.clientY??e.touches?.[0]?.clientY??0)-r.top };
   };
-
-  const resizeCanvas = () => {
-    const parent = canvas.parentElement;
-    if (!parent) return;
-    const rect = parent.getBoundingClientRect();
-    if (rect.width < 10 || rect.height < 10) return;
-    const saved = histStep >= 0 ? history[histStep] : null;
-    canvas.width  = rect.width;
-    canvas.height = rect.height;
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (saved) {
-      const img = new Image();
-      img.onload = () => ctx.drawImage(img, 0, 0);
-      img.src = saved;
-    } else {
-      saveState();
-    }
-  };
-
-  // Resize when paint window becomes visible
-  new ResizeObserver(() => {
-    if (!document.getElementById("paintWindow")?.classList.contains("hidden")) {
-      resizeCanvas();
-    }
-  }).observe(canvas.parentElement);
-
-  document.querySelectorAll("[data-app='paint']").forEach(b => {
-    b.addEventListener("click", () => setTimeout(resizeCanvas, 60));
-  });
-
-  function getPos(e) {
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: (e.clientX ?? e.touches?.[0]?.clientX ?? 0) - rect.left,
-      y: (e.clientY ?? e.touches?.[0]?.clientY ?? 0) - rect.top
-    };
-  }
 
   canvas.addEventListener("mousedown", e => {
     painting = true;
-    const { x, y } = getPos(e);
-    lastX = x; lastY = y;
-    ctx.beginPath();
-    ctx.arc(x, y, ctx.lineWidth / 2, 0, Math.PI * 2);
-    ctx.fillStyle = isEraser ? "white" : document.getElementById("paintColor").value;
-    ctx.fill();
+    const {x,y} = pos(e); lx=x; ly=y;
+    ctx.beginPath(); ctx.arc(x,y,ctx.lineWidth/2,0,Math.PI*2);
+    ctx.fillStyle = eraser ? "white" : document.getElementById("paintColor").value; ctx.fill();
   });
 
   canvas.addEventListener("mousemove", e => {
     if (!painting) return;
-    const { x, y } = getPos(e);
-    ctx.lineWidth   = document.getElementById("paintSize").value;
-    ctx.lineCap     = "round";
-    ctx.lineJoin    = "round";
-    ctx.strokeStyle = isEraser ? "white" : document.getElementById("paintColor").value;
-    ctx.beginPath();
-    ctx.moveTo(lastX, lastY);
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    lastX = x; lastY = y;
+    const {x,y} = pos(e);
+    ctx.lineWidth = document.getElementById("paintSize").value;
+    ctx.lineCap = ctx.lineJoin = "round";
+    ctx.strokeStyle = eraser ? "white" : document.getElementById("paintColor").value;
+    ctx.beginPath(); ctx.moveTo(lx,ly); ctx.lineTo(x,y); ctx.stroke();
+    lx=x; ly=y;
   });
 
-  const endPaint = () => {
-    if (painting) { painting = false; ctx.beginPath(); saveState(); }
-  };
-
-  canvas.addEventListener("mouseup",    endPaint);
-  canvas.addEventListener("mouseleave", endPaint);
+  const end = () => { if (painting) { painting = false; ctx.beginPath(); save(); } };
+  canvas.addEventListener("mouseup", end); canvas.addEventListener("mouseleave", end);
 
   document.getElementById("paintBrushBtn")?.addEventListener("click", () => {
-    isEraser = false;
+    eraser = false;
     document.getElementById("paintBrushBtn").classList.add("active");
     document.getElementById("paintEraserBtn").classList.remove("active");
   });
-
   document.getElementById("paintEraserBtn")?.addEventListener("click", () => {
-    isEraser = true;
+    eraser = true;
     document.getElementById("paintEraserBtn").classList.add("active");
     document.getElementById("paintBrushBtn").classList.remove("active");
   });
-
-  document.getElementById("paintUndoBtn")?.addEventListener("click", () => {
-    if (histStep > 0) { histStep--; restoreState(); }
-  });
-
-  document.getElementById("paintRedoBtn")?.addEventListener("click", () => {
-    if (histStep < history.length - 1) { histStep++; restoreState(); }
-  });
-
-  document.getElementById("paintClear")?.addEventListener("click", () => {
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    saveState();
-  });
-
+  document.getElementById("paintUndoBtn")?.addEventListener("click", () => { if (step > 0) { step--; restore(); } });
+  document.getElementById("paintRedoBtn")?.addEventListener("click", () => { if (step < history.length - 1) { step++; restore(); } });
+  document.getElementById("paintClear")?.addEventListener("click", () => { ctx.fillStyle="white"; ctx.fillRect(0,0,canvas.width,canvas.height); save(); });
   document.getElementById("paintSave")?.addEventListener("click", () => {
-    const fname = prompt("Save image as:", "painting.png");
-    if (!fname) return;
-    const dataUrl = canvas.toDataURL("image/png");
-    window.saveVfsImage?.(fname, dataUrl);
+    const name = prompt("Save image as:", "painting.png");
+    if (!name) return;
+    window.saveVfsImage?.(name, canvas.toDataURL("image/png"));
     alert("Saved to Pictures!");
   });
 })();
 
-/* ══════════════════════════════════════════════════
-   NOTEPAD
-   ══════════════════════════════════════════════════ */
 (function initNotepad() {
-  const textarea  = document.getElementById("notepadText");
-  const titleEl   = document.getElementById("notepadTitle");
-  const saveBtn   = document.getElementById("notepadSave");
-
-  let currentFile = null;
+  const ta    = document.getElementById("notepadText");
+  const title = document.getElementById("notepadTitle");
+  const btn   = document.getElementById("notepadSave");
+  let file    = null;
 
   window.openNotepad = (filename, content) => {
-    currentFile      = filename || null;
-    textarea.value   = content || "";
-    titleEl.textContent = "Notepad — " + (filename || "Untitled");
-    openApp("notepad");
-    setTimeout(() => textarea.focus(), 100);
+    file = filename || null; ta.value = content || "";
+    title.textContent = "Notepad — " + (filename || "Untitled");
+    openApp("notepad"); setTimeout(() => ta.focus(), 100);
   };
 
-  saveBtn?.addEventListener("click", () => {
-    const fname = currentFile || prompt("Save as:", "note.txt");
-    if (!fname) return;
+  btn?.addEventListener("click", () => {
+    const name = file || prompt("Save as:", "note.txt");
+    if (!name) return;
     const vfs = loadVFS();
-    vfs.Documents       = vfs.Documents || {};
-    vfs.Documents[fname] = { type:"text", content: textarea.value };
-    saveVFS(vfs);
-    currentFile          = fname;
-    titleEl.textContent  = "Notepad — " + fname;
-    alert("Saved to Documents!");
-    window.refreshFiles?.();
+    vfs.Documents = vfs.Documents || {};
+    vfs.Documents[name] = { type:"text", content: ta.value };
+    saveVFS(vfs); file = name;
+    title.textContent = "Notepad — " + name;
+    alert("Saved to Documents!"); window.refreshFiles?.();
   });
 })();
 
-/* ══════════════════════════════════════════════════
-   TERMINAL
-   ══════════════════════════════════════════════════ */
 (function initTerminal() {
   const input  = document.getElementById("terminalInput");
   const output = document.getElementById("terminalOutput");
   if (!input || !output) return;
 
-  let currentPath = "Home";
-  let cmdHistory  = [];
-  let histIdx     = -1;
+  let curPath = "Home", history = [], histIdx = -1;
 
   const print = (text, color = "#00ff41") => {
-    const line = document.createElement("div");
-    line.style.color = color;
-    line.textContent = text;
-    output.appendChild(line);
-    output.scrollTop = output.scrollHeight;
+    const d = document.createElement("div"); d.style.color = color; d.textContent = text;
+    output.appendChild(d); output.scrollTop = output.scrollHeight;
   };
 
-  print("Cloud OS Terminal v2.0");
-  print("Type 'help' for commands.");
-  print("");
+  print("Cloud OS Terminal v2.0"); print("Type 'help' for commands."); print("");
 
   input.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp") {
-      if (histIdx < cmdHistory.length - 1) histIdx++;
-      input.value = cmdHistory[cmdHistory.length - 1 - histIdx] || "";
-      e.preventDefault();
-    } else if (e.key === "ArrowDown") {
-      if (histIdx > -1) histIdx--;
-      input.value = histIdx >= 0 ? (cmdHistory[cmdHistory.length - 1 - histIdx] || "") : "";
-      e.preventDefault();
-    }
+    if (e.key === "ArrowUp") { if (histIdx < history.length-1) histIdx++; input.value = history[history.length-1-histIdx]||""; e.preventDefault(); }
+    else if (e.key === "ArrowDown") { if (histIdx > -1) histIdx--; input.value = histIdx>=0 ? history[history.length-1-histIdx]||"" : ""; e.preventDefault(); }
   });
 
   input.addEventListener("keypress", e => {
     if (e.key !== "Enter") return;
-
-    const line = input.value.trim();
-    input.value = "";
-    histIdx     = -1;
-
+    const line = input.value.trim(); input.value = ""; histIdx = -1;
     if (!line) return;
-    cmdHistory.push(line);
-
-    print(`user@cloud-os:~/${currentPath}$ ${line}`, "#ffffff");
-
-    const [cmd, ...rest] = line.split(" ");
-    const param = rest.join(" ");
-    const vfs   = loadVFS();
+    history.push(line);
+    print(`user@cloud-os:~/${curPath}$ ${line}`, "#fff");
+    const [cmd, ...rest] = line.split(" "), param = rest.join(" "), vfs = loadVFS();
 
     switch(cmd.toLowerCase()) {
-      case "help":
-        print("Commands: help, ls, ll, cd, cat, touch, rm, clear, whoami, date, echo, pwd, neofetch");
-        break;
-      case "ls":
-      case "ll": {
-        const folder = vfs[currentPath] || {};
-        const files  = Object.keys(folder);
-        if (!files.length) { print("(empty)"); break; }
-        files.forEach(f => print(f));
-        break;
-      }
-      case "pwd":
-        print("/" + currentPath);
-        break;
+      case "help": print("Commands: help, ls, ll, cd, cat, touch, rm, clear, whoami, date, echo, pwd, neofetch"); break;
+      case "ls": case "ll": { const f = vfs[curPath]||{}; const ks=Object.keys(f); ks.length ? ks.forEach(k=>print(k)) : print("(empty)"); break; }
+      case "pwd": print("/" + curPath); break;
       case "cd":
-        if (!param || param === "~" || param === "/") {
-          currentPath = "Home";
-        } else if (vfs[param]) {
-          currentPath = param;
-        } else {
-          print("cd: no such directory: " + param, "#ff5555");
-        }
+        if (!param || param==="~" || param==="/") curPath="Home";
+        else if (vfs[param]) curPath=param;
+        else print("cd: no such directory: "+param,"#ff5555");
         break;
-      case "cat":
-        if (!param) { print("cat: missing operand", "#ff5555"); break; }
-        const f = vfs[currentPath]?.[param];
-        if (f?.type === "text") { print(f.content); }
-        else if (f?.type === "image") { print("[binary image data]", "#888"); }
-        else { print("cat: " + param + ": no such file", "#ff5555"); }
-        break;
-      case "touch": {
-        if (!param) { print("touch: missing operand", "#ff5555"); break; }
-        const vf = loadVFS();
-        vf[currentPath]       = vf[currentPath] || {};
-        vf[currentPath][param] = { type:"text", content:"" };
-        saveVFS(vf);
-        print("Created: " + param);
-        window.refreshFiles?.();
+      case "cat": {
+        if (!param) { print("cat: missing operand","#ff5555"); break; }
+        const f = vfs[curPath]?.[param];
+        if (f?.type==="text") print(f.content);
+        else if (f?.type==="image") print("[binary image data]","#888");
+        else print("cat: "+param+": no such file","#ff5555");
         break;
       }
-      case "rm": {
-        if (!param) { print("rm: missing operand", "#ff5555"); break; }
-        const vr = loadVFS();
-        if (!vr[currentPath]?.[param]) { print("rm: " + param + ": no such file", "#ff5555"); break; }
-        delete vr[currentPath][param];
-        saveVFS(vr);
-        print("Deleted: " + param);
-        window.refreshFiles?.();
-        break;
-      }
-      case "echo":
-        print(param);
-        break;
-      case "clear":
-        output.innerHTML = "";
-        break;
-      case "whoami":
-        print("user");
-        break;
-      case "date":
-        print(new Date().toString());
-        break;
+      case "touch": { if (!param) { print("touch: missing operand","#ff5555"); break; } const v=loadVFS(); v[curPath]=v[curPath]||{}; v[curPath][param]={type:"text",content:""}; saveVFS(v); print("Created: "+param); window.refreshFiles?.(); break; }
+      case "rm": { if (!param) { print("rm: missing operand","#ff5555"); break; } const v=loadVFS(); if (!v[curPath]?.[param]) { print("rm: "+param+": no such file","#ff5555"); break; } delete v[curPath][param]; saveVFS(v); print("Deleted: "+param); window.refreshFiles?.(); break; }
+      case "echo": print(param); break;
+      case "clear": output.innerHTML=""; break;
+      case "whoami": print("user"); break;
+      case "date": print(new Date().toString()); break;
       case "neofetch":
-        print("         ████        user@cloud-os", "#4facfe");
+        print("         ████        user@cloud-os","#4facfe");
         print("        ██████       ─────────────");
-        print("       ████████      OS: Cloud OS v2");
-        print("      ██  ██  ██     Kernel: Web 1.0");
-        print("     ██████████      Shell: CloudShell");
-        print("    ████████████     Terminal: CloudTerm");
-        print("   ██████████████    Theme: Glass Dark");
-        print("  ████████████████   Icons: Stroke v1");
+        print("       ████████      OS: Cloud OS");
+        print("      ██  ██  ██     Shell: CloudShell");
+        print("     ██████████      Terminal: CloudTerm");
+        print("    ████████████     Theme: Glass Dark");
+        print("   ██████████████    Icons: SVG Stroke");
         break;
-      default:
-        print(`${cmd}: command not found`, "#ff5555");
+      default: print(`${cmd}: command not found`, "#ff5555");
     }
   });
 })();
 
-/* ══════════════════════════════════════════════════
-   START MENU SEARCH
-   ══════════════════════════════════════════════════ */
 (function initSearch() {
-  const searchInput = document.getElementById("startSearch");
-  const resultsEl   = document.getElementById("searchResults");
-  const appGrid     = document.querySelector(".start-menu .app-grid");
-  const appNames    = ["Calculator","Files","Browser","Settings","Terminal","Notepad","Paint"];
+  const inp = document.getElementById("startSearch");
+  const res = document.getElementById("searchResults");
+  const grid = document.querySelector(".start-menu .app-grid");
+  const apps = ["Calculator","Files","Browser","Settings","Terminal","Notepad","Paint","AI Assistant","Camera"];
 
-  if (!searchInput) return;
+  if (!inp) return;
 
-  searchInput.addEventListener("input", () => {
-    const q = searchInput.value.toLowerCase().trim();
+  inp.addEventListener("input", () => {
+    const q = inp.value.toLowerCase().trim();
+    if (!q) { res.classList.add("hidden"); grid.style.display = ""; return; }
+    res.innerHTML = ""; res.classList.remove("hidden"); grid.style.display = "none";
 
-    if (!q) {
-      resultsEl.classList.add("hidden");
-      appGrid.style.display = "";
-      return;
-    }
-
-    resultsEl.innerHTML = "";
-    resultsEl.classList.remove("hidden");
-    appGrid.style.display = "none";
-
-    // Search apps
-    appNames.filter(n => n.toLowerCase().includes(q)).forEach(name => {
-      const div  = document.createElement("div");
-      div.className   = "search-item";
-      div.innerHTML   = `<span>🚀</span><span>${name}</span>`;
-      div.addEventListener("click", () => {
-        openApp(name.toLowerCase());
-        startMenu.classList.add("hidden");
-      });
-      resultsEl.appendChild(div);
+    apps.filter(n => n.toLowerCase().includes(q)).forEach(name => {
+      const d = document.createElement("div"); d.className="search-item";
+      d.innerHTML = `<span>🚀</span><span>${name}</span>`;
+      d.addEventListener("click", () => { openApp(name.toLowerCase().replace(" ","")); startMenu.classList.add("hidden"); });
+      res.appendChild(d);
     });
 
-    // Search files
     const vfs = loadVFS();
     for (const folder in vfs) {
       for (const fname in vfs[folder]) {
         if (fname.toLowerCase().includes(q)) {
-          const div = document.createElement("div");
-          div.className = "search-item";
-          div.innerHTML = `<span>📄</span><span>${fname}</span><small style="opacity:0.5;margin-left:auto;">${folder}</small>`;
-          div.addEventListener("click", () => {
+          const d = document.createElement("div"); d.className="search-item";
+          d.innerHTML = `<span>📄</span><span>${fname}</span><small style="opacity:0.5;margin-left:auto;">${folder}</small>`;
+          d.addEventListener("click", () => {
             const fd = vfs[folder][fname];
-            if (fd.type === "text") window.openNotepad?.(fname, fd.content);
-            else openApp("paint");
+            if (fd.type==="text") window.openNotepad?.(fname, fd.content); else openApp("paint");
             startMenu.classList.add("hidden");
           });
-          resultsEl.appendChild(div);
+          res.appendChild(d);
         }
       }
     }
 
-    if (!resultsEl.children.length) {
-      const div = document.createElement("div");
-      div.className   = "search-item";
-      div.style.opacity = "0.5";
-      div.textContent = "No results for \"" + q + "\"";
-      resultsEl.appendChild(div);
+    if (!res.children.length) {
+      const d = document.createElement("div"); d.className="search-item"; d.style.opacity="0.5";
+      d.textContent = `No results for "${q}"`; res.appendChild(d);
     }
   });
+})();
+
+(function initCamera() {
+  const video    = document.getElementById("cameraVideo");
+  const photoBtn = document.getElementById("cameraPhotoBtn");
+  const videoBtn = document.getElementById("cameraVideoBtn");
+  const status   = document.getElementById("cameraStatus");
+  const camWin   = document.getElementById("cameraWindow");
+
+  if (!video || !camWin) return;
+
+  let stream = null, recorder = null, chunks = [], recording = false;
+
+  const showStatus = (text, duration = 1500) => {
+    status.textContent = text; status.classList.add("visible");
+    setTimeout(() => status.classList.remove("visible"), duration);
+  };
+
+  const startCam = async () => {
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      video.srcObject = stream;
+    } catch(e) { showStatus("Camera access denied", 3000); }
+  };
+
+  const stopCam = () => {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    if (recorder && recording) { recorder.stop(); recording = false; }
+  };
+
+  new MutationObserver(() => {
+    if (!camWin.classList.contains("hidden")) startCam();
+    else stopCam();
+  }).observe(camWin, { attributes: true });
+
+  photoBtn?.addEventListener("click", () => {
+    if (!stream) return;
+    const c = document.createElement("canvas");
+    c.width = video.videoWidth; c.height = video.videoHeight;
+    c.getContext("2d").drawImage(video, 0, 0);
+    window.saveVfsImage?.("photo_" + Date.now() + ".png", c.toDataURL("image/png"));
+    video.style.opacity = "0"; setTimeout(() => { video.style.opacity = "1"; }, 120);
+    showStatus("📸 Photo saved!");
+  });
+
+  videoBtn?.addEventListener("click", () => {
+    if (!stream) return;
+    if (!recording) {
+      chunks = [];
+      recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type:"video/webm" });
+        const fr = new FileReader();
+        fr.onloadend = () => window.saveVfsImage?.("video_" + Date.now() + ".webm", fr.result);
+        fr.readAsDataURL(blob);
+        showStatus("🎥 Video saved!");
+      };
+      recorder.start(); recording = true;
+      videoBtn.classList.add("recording");
+      showStatus("● Recording...", 99999);
+    } else {
+      recorder.stop(); recording = false;
+      videoBtn.classList.remove("recording");
+      status.classList.remove("visible");
+    }
+  });
+})();
+
+(function initAssistant() {
+  const welcome   = document.getElementById("aiWelcome");
+  const messages  = document.getElementById("aiMessages");
+  const input     = document.getElementById("aiInput");
+  const sendBtn   = document.getElementById("aiSendBtn");
+
+  if (!messages || !input) return;
+
+  const API_KEY = "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";
+  const MODEL   = "qwen/qwen3-coder:free";
+
+  let chatHistory = [];
+  let streaming   = false;
+
+  const showChat = () => {
+    if (welcome) welcome.style.display = "none";
+    messages.style.display = "flex";
+  };
+
+  const addMsg = (text, role) => {
+    showChat();
+    const wrap = document.createElement("div");
+    wrap.className = "ai-msg " + role;
+    const avatar = document.createElement("div");
+    avatar.className = "ai-msg-avatar";
+    avatar.textContent = role === "user" ? "👤" : "✦";
+    const bubble = document.createElement("div");
+    bubble.className = "ai-msg-bubble";
+    bubble.textContent = text;
+    wrap.appendChild(avatar); wrap.appendChild(bubble);
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+    return bubble;
+  };
+
+  const addTyping = () => {
+    showChat();
+    const wrap = document.createElement("div"); wrap.className = "ai-msg bot"; wrap.id = "ai-typing-indicator";
+    const avatar = document.createElement("div"); avatar.className = "ai-msg-avatar"; avatar.textContent = "✦";
+    const bubble = document.createElement("div"); bubble.className = "ai-msg-bubble";
+    bubble.innerHTML = '<div class="ai-typing"><span></span><span></span><span></span></div>';
+    wrap.appendChild(avatar); wrap.appendChild(bubble);
+    messages.appendChild(wrap);
+    messages.scrollTop = messages.scrollHeight;
+    return wrap;
+  };
+
+  const removeTyping = () => { document.getElementById("ai-typing-indicator")?.remove(); };
+
+  const send = async () => {
+    const text = input.value.trim();
+    if (!text || streaming) return;
+
+    input.value = ""; input.style.height = "";
+    addMsg(text, "user");
+    chatHistory.push({ role:"user", content: text });
+
+    streaming = true; sendBtn.disabled = true;
+    const typingEl = addTyping();
+
+    try {
+      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        method: "POST",
+        headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: MODEL,
+          messages: [
+            { role:"system", content:"You are Cloud OS AI Assistant, a helpful AI built into a web-based OS. You can open apps by responding with <OPEN_APP:appname>. Available apps: calculator, files, browser, settings, terminal, notepad, paint, camera. Use this tag only when the user explicitly wants to open an app. Keep responses concise and helpful." },
+            ...chatHistory
+          ],
+          stream: true
+        })
+      });
+
+      removeTyping();
+
+      if (!resp.ok) throw new Error("API error " + resp.status);
+
+      const bubble = addMsg("", "bot");
+      let reply = "";
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n").filter(l => l.startsWith("data:"));
+        for (const line of lines) {
+          const data = line.slice(5).trim();
+          if (data === "[DONE]") break;
+          try {
+            const json = JSON.parse(data);
+            const content = json.choices?.[0]?.delta?.content;
+            if (content) {
+              reply += content;
+              const appMatch = reply.match(/<OPEN_APP:(\w+)>/);
+              const display = appMatch ? reply.replace(appMatch[0], "").trim() : reply;
+              bubble.textContent = display || "…";
+              messages.scrollTop = messages.scrollHeight;
+            }
+          } catch(e) {}
+        }
+      }
+
+      const appMatch = reply.match(/<OPEN_APP:(\w+)>/);
+      if (appMatch) {
+        openApp(appMatch[1].toLowerCase());
+        reply = reply.replace(appMatch[0], "").trim();
+        if (!reply) reply = "Opening " + appMatch[1] + "…";
+        bubble.textContent = reply;
+      }
+
+      chatHistory.push({ role:"assistant", content: reply });
+
+    } catch(e) {
+      removeTyping();
+      addMsg("Connection failed: " + e.message, "bot");
+    }
+
+    streaming = false; sendBtn.disabled = false;
+    messages.scrollTop = messages.scrollHeight;
+  };
+
+  sendBtn.addEventListener("click", send);
+  input.addEventListener("keydown", e => {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+  });
+
+  input.addEventListener("input", () => {
+    input.style.height = "";
+    input.style.height = Math.min(input.scrollHeight, 120) + "px";
+  });
+
+  document.querySelectorAll(".ai-suggestion-chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const p = chip.getAttribute("data-prompt");
+      if (p) { input.value = p; send(); }
+    });
+  });
+
+  messages.style.display = "none";
 })();
