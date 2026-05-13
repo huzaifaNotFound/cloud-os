@@ -6,12 +6,20 @@ export default async function handler(req, res) {
     headers: {
       "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://vercel.com/mohammadhuzaifa9009-5496s-projects/cloud-os",
+      "HTTP-Referer": "https://cloud-os-snowy.vercel.app/",
       "X-Title": "Cloud OS"
     },
     body: JSON.stringify(req.body)
   });
 
-  const data = await response.json();
-  res.status(response.status).json(data);
+  res.status(response.status);
+  res.setHeader("Content-Type", "text/event-stream");
+
+  const reader = response.body.getReader();
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    res.write(value);
+  }
+  res.end();
 }
