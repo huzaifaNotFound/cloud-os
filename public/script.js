@@ -794,9 +794,6 @@ function saveVFS(vfs) {
 
   if (!messages || !input) return;
 
-  const API_KEY = "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";
-  const MODEL   = "qwen/qwen3-coder:free";
-
   let chatHistory = [];
   let streaming   = false;
 
@@ -847,11 +844,11 @@ function saveVFS(vfs) {
     const typingEl = addTyping();
 
     try {
-      const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json", "HTTP-Referer": window.location.href, "X-Title": "Cloud OS" },
-        body: JSON.stringify({
-          model: MODEL,
+      const resp = await fetch("/api/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    model: "qwen/qwen3-coder:free",
           messages: [
             { role:"system", content:"You are Cloud OS AI Assistant, a helpful AI built into a web-based OS. You can open apps by responding with <OPEN_APP:appname>. Available apps: calculator, files, browser, settings, terminal, notepad, paint, camera. Use this tag only when the user explicitly wants to open an app. Keep responses concise and helpful." },
             ...chatHistory
