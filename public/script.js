@@ -794,7 +794,7 @@ function saveVFS(vfs) {
 
   if (!messages || !input) return;
 
-  const API_KEY = "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";
+  const API_KEY = "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";
   const MODEL   = "qwen/qwen3-coder:free";
 
   let chatHistory = [];
