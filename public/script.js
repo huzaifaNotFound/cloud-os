@@ -849,7 +849,7 @@ function saveVFS(vfs) {
     try {
       const resp = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
-        headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json" },
+        headers: { "Authorization": "Bearer " + API_KEY, "Content-Type": "application/json", "HTTP-Referer": window.location.href, "X-Title": "Cloud OS" },
         body: JSON.stringify({
           model: MODEL,
           messages: [
