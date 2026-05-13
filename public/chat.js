@@ -6,7 +6,7 @@ export default async function handler(req, res) {
     headers: {
       "Authorization": "Bearer " + process.env.OPENROUTER_API_KEY,
       "Content-Type": "application/json",
-      "HTTP-Referer": "https://your-vercel-app.vercel.app",
+      "HTTP-Referer": "https://vercel.com/mohammadhuzaifa9009-5496s-projects/cloud-os",
       "X-Title": "Cloud OS"
     },
     body: JSON.stringify(req.body)
